@@ -9,10 +9,10 @@ output:
 ---
 
 ###Summary
-The goal of this project is to predict the manner in which the subjects in the tests did their exercise. The result is represented by "classe" variable in the training set. We ended up using 53 variables of 159 in all to predict the categories and got extremely accurate results using the random forests algorithm. The sample error rate was less than a half a per cent (0.43%).  The model predicted all the 20 test problems correctly.  
+This is a project assignment for the Practical Machine Learning course on Coursera by Johns Hopkins University. The goal of the project is to predict the manner in which the subjects in the tests did their exercise. The result is represented by "classe" variable in the training set. We ended up using 53 variables of 159 in all to predict the categories and got extremely accurate results using the random forest algorithm. The sample error rate was less than a half a per cent (0.43%).  The model predicted all the 20 test problems correctly.  
 
 **Background**  
-Quoted from the assignment page: Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: [http://groupware.les.inf.puc-rio.br/har] (see the section on the Weight Lifting Exercise Dataset). 
+*Quoted from the assignment page:* Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: [http://groupware.les.inf.puc-rio.br/har] (see the section on the Weight Lifting Exercise Dataset). 
 
 
 
@@ -69,7 +69,7 @@ training <- read.csv(trainingFile, na.strings = c("NA", "#DIV/0!",""))
 
 ```
 
-Next we'll first set the seed, accorging to the assignment and then clean the data. Quick exploration shows that the first columns "X" to "num_window" are metadata that are not sensor outputs. According to the accompanied reserach paper, the researcers used time windows as way of splitting the data. My first strategy is to remove those i.e. all time window, timestamp and data about persons and to first only focus on the actual sensor data. So columns "X" to "num_window" are removed from the dataset. After having done that i do some explored the number of NAs in the different columns using the `apply(training, 2, function(x) sum(is.na(x) )` command. It reveals that most of the columns that have NAs consist almost entirely of NAs. So we'll remove those columns, that is all that have any NAs, as well. Now we have reduced the number of variables from 160 to 53.
+Next we'll first set the seed, according to the assignment and then clean the data. Quick exploration shows that the first columns "X" to "num_window" are metadata that are not sensor outputs. According to the accompanied research paper, the researchers used time windows as way of splitting the data. My first strategy is to remove those i.e. all time window, timestamp and data about persons and to first only focus on the actual sensor data. So columns "X" to "num_window" are removed from the dataset. After having done that i do some explored the number of NAs in the different columns using the `apply(training, 2, function(x) sum(is.na(x) )` command. It reveals that most of the columns that have any NAs consist almost entirely of NAs. So we'll remove those columns and therefore get rid of every NA in the entire data set. Now we have reduced the number of variables from 160 to 53.
 
 ```{r}
 
@@ -92,7 +92,7 @@ makeTidy <- function(dat){
 training <- makeTidy(training)
 ```
 
-Now we split the training data into two, for cross validation. We'll create a training set (subtraining) that includes 60 % of the entire training data and 30% for cross validation.
+Now we split the training data into two for cross validation. We'll create a training set (subtraining) that includes 60 % of the entire training data and 30% for cross validation.
 
 ```{r}
 #===============================================================================
@@ -107,10 +107,10 @@ subtesting = training[-inTrain,]
 
 ```
 
-We'll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually worse than without any preprocessing. But when we did the preprocessing with default values we got some improvement in accuracy, albeit miniscule. This will be shown in a moment. The improvement was so slight because accuracy without any preprocessing was extremely high. We would probably have skipped the preprocessing altoghether, had we known it from the beginning.
+We'll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually worse than without any preprocessing. But when we did the preprocessing with default values we got some improvement in accuracy, albeit miniscule. This will be shown in a moment. The improvement was so slight because accuracy without any preprocessing was extremely high. We would probably have skipped the preprocessing altogether, had we known it from the beginning.
 
 **Building the model and doing cross validation**
-The model was built using the random forest algorithm that has been successful when predicting as here predicting categorical outcomes. We first tried the random forest method using the *train* function in the caret package, but that was tediously slow, and after researching the course forums got tipped that creating the model using the function directly from the randomForset package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Testing the model on the traing data now.
+The model was built using the random forest algorithm that has been successful when predicting categorical outcomes, as is the case here. We first tried the random forest method using the *train* function in the caret package, but that was tediously slow, and after researching the course forums got tipped that creating the model using the function directly from the randomForest package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Testing the model on the traing data now.
 
 ```{r}
 
@@ -131,7 +131,7 @@ confusionMatrix(subtesting$classe,predict(modelFit1,testPC))
 ```
 
 
-Wow, the model performs very well on the the training set and doing cross validation results in perdiction accuracy of whopping 0.993, that is 0.7% sample error rate. These are very good results, that does not differ more than expected from the results on the training data. We can conclude that the model has not been overfitted.
+Wow, the model performs very well on the the training set and doing cross validation results in prediction accuracy of whopping 0.993, that is 0.7% sample error rate. These are very good results, that does not differ more than expected from the results on the training data. We can conclude that the model has not been overfitted.
 
 Just to test, we also created a model without preprocessing the data:
 
@@ -146,7 +146,7 @@ Without preprocessing we got prediction accuracy of 0.9927 in cross validation t
 The accuracy is very high, so we decided not to explore any further but to use this algorithm.
 
 **Final thoughts**  
-If these results are correct, as they seem, it does raise the question how come it predicts so well and why the results that the reserachers got were so much worse. It seems almost unbelieveble to get results that are this good. One also wonders why the researchers did not try this approach as it was done almost entirely using defaults.
+If these results are correct, as they seem, it does raise the question how come it predicts so well and why these are so much better than results that the reseachers got. The accuracy seems almost hard to believe. One also wonders why the researchers did not try this approach as it is rather simple and done almost entirely using defaults.
 
 
 ---
