@@ -106,7 +106,7 @@ downloadFiles &lt;- function(url, file) {
 }
 #downloadFiles(dataURL, trainingFile)
 #downloadFiles(dataURL, testingFile)</code></pre>
-<p>The data is downloaded in the working directory. Next we will load it into R. It is important to tell R which values should be interpreted as NAs, hence the <code>na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;,&quot;&quot;)</code> -argument.</p>
+<p>The data is downloaded to the working directory. Next we will load it into R. It is important to tell R which values should be interpreted as NAs, hence the <code>na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;,&quot;&quot;)</code> -argument.</p>
 <pre class="r"><code>#===============================================================================
 # Reads the files
 #===============================================================================
@@ -115,7 +115,7 @@ downloadFiles &lt;- function(url, file) {
 testing &lt;- read.csv(testingFile, na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;,&quot;&quot;))
 training &lt;- read.csv(trainingFile, na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;,&quot;&quot;))</code></pre>
 <p><strong>Cleaning the data and doing feature selection</strong><br />Next we’ll first set the seed, according to the assignment and then clean the data. Quick exploration shows that the first columns “X” to “num_window” are metadata that are not sensor outputs. According to the accompanied research paper, the researchers used time windows as a way of splitting the data. Our first strategy is to remove those i.e. all time window, timestamp and also data about persons and to first only focus on the actual sensor data. So columns “X” to “num_window” are removed from the dataset.</p>
-<p>Having done that we did some explored the number of NAs in the different columns using the <code>apply(training, 2, function(x) sum(is.na(x) )</code> command. It reveals that most of the columns that include any NAs, consist almost entirely of NAs. So we’ll remove those columns and therefore get rid of every NA in the entire data set. We have now reduced the number of variables from 160 to 53.</p>
+<p>Having done that we explored the number of NAs in the different columns using the <code>apply(training, 2, function(x) sum(is.na(x) )</code> command. It reveals that most of the columns that include NAs, consist almost entirely of NAs. So we’ll remove those columns and therefore get rid of every NA in the entire data set. We have now reduced the number of variables from 160 to 53.</p>
 <pre class="r"><code>#===============================================================================
 # Setting the seed, cleaning the data and selecting variables and features
 #===============================================================================
@@ -133,7 +133,7 @@ makeTidy &lt;- function(dat){
         dat
 }
 training &lt;- makeTidy(training)</code></pre>
-<p>Next, we’ll split the training data into two sets for cross validation. We’ll create a training set (subtraining) that includes 60 % of the entire training data and 40% for cross validation.</p>
+<p>Next, we’ll split the training data into two sets for cross validation. We’ll create a training set (naming the variables to subtraining and subtesting) that includes 60 % of the entire training data and 40% for cross validation.</p>
 <pre class="r"><code>#===============================================================================
 # Setting the seed and creating test &amp; training sets for cross validation
 #===============================================================================
@@ -143,8 +143,8 @@ set.seed(3433)
 inTrain = createDataPartition(training$classe, p = .60)[[1]]
 subtraining = training[ inTrain,]
 subtesting = training[-inTrain,]</code></pre>
-<p>We’ll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually worse than without other results. When we did the preprocessing with default values we got some improvement in accuracy, albeit that those improvements were miniscule. This will be shown in a moment. The improvement was perhaps so slight because accuracy without any preprocessing was already extremely high. We would probably have skipped the preprocessing alltogether, had we known it from the beginning.</p>
-<p><strong>Building the model and doing cross validation</strong><br />The model was built using the random forest algorithm that has been successful when predicting categorical outcomes, as is the case here. We first tried the random forest method using the <em>train</em> function in the caret package, but that was tediously slow, and after researching the course forums realized that creating the model using the function directly from the randomForest package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Doint the preprocessing, building the model and testing it on the traing data next.</p>
+<p>We’ll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually significantly worse than without the pca. When we did the preprocessing with default values we got some improvement in accuracy, albeit miniscule. The results will be shown in a moment. The improvement was perhaps so slight because accuracy without any preprocessing was already extremely high. We would probably have skipped the preprocessing alltogether, had we known it from the beginning.</p>
+<p><strong>Building the model and doing cross validation</strong><br />The model was built using the random forest algorithm that has been successful when predicting categorical outcomes, as is the case here. We first tried the random forest method using the <em>train</em> function in the caret package, but that was tediously slow, and then we realized that creating the model using the function directly from the randomForest package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Doing the preprocessing, building the model and testing it on the traing data next.</p>
 <pre class="r"><code>preProc &lt;- preProcess(select(subtraining,-classe))
 trainPC &lt;- predict(preProc,select(subtraining, -classe))
 trainPC$classe &lt;- subtraining$classe
@@ -181,7 +181,7 @@ confusionMatrix(subtraining$classe,predict(modelFit1,trainPC))</code></pre>
 ## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
 ## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
 ## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
-<p>The model predicts with accuracy of 100% on the training data. This signals a risk that the model has been overfitted. We’ll find out by running the model on the test data. IShould it perform significantly worse we might have been overfitting.</p>
+<p>The model predicts with accuracy of 100% on the training data. This signals a risk that the model has been overfitted. We’ll find out by running the model on the test data. We might have been overfitting, should it perform significantly worse.</p>
 <pre class="r"><code>testPC &lt;- predict(preProc,select(subtesting, -classe))
 testPC$classe &lt;- subtesting$classe
 confusionMatrix(subtesting$classe,predict(modelFit1,testPC))</code></pre>
@@ -217,7 +217,7 @@ confusionMatrix(subtesting$classe,predict(modelFit1,testPC))</code></pre>
 ## Detection Prevalence   0.2845   0.1935   0.1744   0.1639   0.1838
 ## Balanced Accuracy      0.9975   0.9932   0.9919   0.9961   0.9990</code></pre>
 <p>Wow, the model performs very well on the the training set and doing cross validation results in prediction accuracy of whopping 0.993, that is 0.7% sample error rate. These are very good results, that does not differ more than expected from the results on the training data. We can conclude that the model has not been overfitted.</p>
-<p>But just to test, we also created a model without preprocessing the data:</p>
+<p>But just to test, out of curiosity, we also created a model without preprocessing the data:</p>
 <pre class="r"><code>modelFit2 &lt;- randomForest(classe ~ ., data = subtraining)
 confusionMatrix(subtesting$classe,predict(modelFit2,subtesting))</code></pre>
 <pre><code>## Confusion Matrix and Statistics
@@ -253,7 +253,7 @@ confusionMatrix(subtesting$classe,predict(modelFit2,subtesting))</code></pre>
 ## Balanced Accuracy      0.9970   0.9931   0.9915   0.9967   0.9990</code></pre>
 <p>Without preprocessing we got prediction accuracy of 0.9927 in cross validation test. As mentioned above, knowing this, we would not have really needed to do the preprocessing.</p>
 <p>The accuracy is very high, so we decided not to explore any further but to use this algorithm.</p>
-<p><strong>Final thoughts</strong><br />If these results are correct, as they seem, it does raise the question how come it predicts so well. Were the trial conditions perhaps to controlled? The accuracy seems almost hard to believe. Also, why are these so much better than results that the reseachers got. They did use another strategy for splitting the data. One cant help but wonder why the researchers did not try this approach as it is rather simple and done almost entirely using defaults.</p>
+<p><strong>Final thoughts</strong><br />If these results are correct, as they seem, it does raise the question how come it predicts so well. Were the trial conditions perhaps to controlled and therefore unnatural? The accuracy seems almost hard to believe. Also, why are these rather better than results that the reseachers got. They also used the random forest, but used another strategy for splitting the data, based on many folds they called the sliding window approach. One cant help but wonder why the researchers did not try this approach as it is rather simple and done almost entirely using defaults.</p>
 <hr />
 <p><strong>Submitting the test problems</strong><br />The following code creates the text files with predictions needed to submit the test problems for the second part of the assignment. These predictions use the same model as above.</p>
 <pre class="r"><code>pml_write_files = function(x){

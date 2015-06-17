@@ -58,7 +58,7 @@ downloadFiles <- function(url, file) {
 
 ```
 
-The data is downloaded in the working directory. Next we will load it into R. It is important to tell R which values should be interpreted as NAs, hence the `na.strings = c("NA", "#DIV/0!","")` -argument. 
+The data is downloaded to the working directory. Next we will load it into R. It is important to tell R which values should be interpreted as NAs, hence the `na.strings = c("NA", "#DIV/0!","")` -argument. 
 
 ```{r}
 #===============================================================================
@@ -74,7 +74,7 @@ training <- read.csv(trainingFile, na.strings = c("NA", "#DIV/0!",""))
 **Cleaning the data and doing feature selection**  
 Next we'll first set the seed, according to the assignment and then clean the data. Quick exploration shows that the first columns "X" to "num_window" are metadata that are not sensor outputs. According to the accompanied research paper, the researchers used time windows as a way of splitting the data. Our first strategy is to remove those i.e. all time window, timestamp and also data about persons and to first only focus on the actual sensor data. So columns "X" to "num_window" are removed from the dataset. 
 
-Having done that we did some explored the number of NAs in the different columns using the `apply(training, 2, function(x) sum(is.na(x) )` command. It reveals that most of the columns that include any NAs, consist almost entirely of NAs. So we'll remove those columns and therefore get rid of every NA in the entire data set. We have now reduced the number of variables from 160 to 53.
+Having done that we explored the number of NAs in the different columns using the `apply(training, 2, function(x) sum(is.na(x) )` command. It reveals that most of the columns that include NAs, consist almost entirely of NAs. So we'll remove those columns and therefore get rid of every NA in the entire data set. We have now reduced the number of variables from 160 to 53.
 
 ```{r}
 
@@ -97,7 +97,7 @@ makeTidy <- function(dat){
 training <- makeTidy(training)
 ```
 
-Next, we'll split the training data into two sets for cross validation. We'll create a training set (subtraining) that includes 60 % of the entire training data and 40% for cross validation.
+Next, we'll split the training data into two sets for cross validation. We'll create a training set (naming the variables to subtraining and subtesting) that includes 60 % of the entire training data and 40% for cross validation.
 
 ```{r}
 #===============================================================================
@@ -112,10 +112,10 @@ subtesting = training[-inTrain,]
 
 ```
 
-We'll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually worse than without other results. When we did the preprocessing with default values we got some improvement in accuracy, albeit that those improvements were miniscule. This will be shown in a moment. The improvement was perhaps so slight because accuracy without any preprocessing was already extremely high. We would probably have skipped the preprocessing alltogether, had we known it from the beginning.
+We'll now do some feature exploration. We actually started with doing principal component analysis, but the prediction results were actually significantly worse than without the pca. When we did the preprocessing with default values we got some improvement in accuracy, albeit miniscule. The results will be shown in a moment. The improvement was perhaps so slight because accuracy without any preprocessing was already extremely high. We would probably have skipped the preprocessing alltogether, had we known it from the beginning.
 
 **Building the model and doing cross validation**  
-The model was built using the random forest algorithm that has been successful when predicting categorical outcomes, as is the case here. We first tried the random forest method using the *train* function in the caret package, but that was tediously slow, and after researching the course forums realized that creating the model using the function directly from the randomForest package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Doint the preprocessing, building the model and testing it on the traing data next.
+The model was built using the random forest algorithm that has been successful when predicting categorical outcomes, as is the case here. We first tried the random forest method using the *train* function in the caret package, but that was tediously slow, and then we realized that creating the model using the function directly from the randomForest package is much faster. And indeed it was. It did the calculations in matter of a minute or two. Doing the preprocessing, building the model and testing it on the traing data next.
 
 ```{r}
 
@@ -126,7 +126,7 @@ modelFit1 <- randomForest(classe ~ ., data = trainPC)
 confusionMatrix(subtraining$classe,predict(modelFit1,trainPC))
 ```
 
-The model predicts with accuracy of 100% on the training data. This signals a risk that the model has been overfitted. We'll find out by running the model on the test data. IShould it perform significantly worse we might have been overfitting.
+The model predicts with accuracy of 100% on the training data. This signals a risk that the model has been overfitted. We'll find out by running the model on the test data. We might have been overfitting, should it perform significantly worse.
 
 ```{r}
 
@@ -138,7 +138,7 @@ confusionMatrix(subtesting$classe,predict(modelFit1,testPC))
 
 Wow, the model performs very well on the the training set and doing cross validation results in prediction accuracy of whopping 0.993, that is 0.7% sample error rate. These are very good results, that does not differ more than expected from the results on the training data. We can conclude that the model has not been overfitted.
 
-But just to test, we also created a model without preprocessing the data:
+But just to test, out of curiosity, we also created a model without preprocessing the data:
 
 
 ```{r}
@@ -151,7 +151,7 @@ Without preprocessing we got prediction accuracy of 0.9927 in cross validation t
 The accuracy is very high, so we decided not to explore any further but to use this algorithm.
 
 **Final thoughts**  
-If these results are correct, as they seem, it does raise the question how come it predicts so well. Were the trial conditions perhaps to controlled? The accuracy seems almost hard to believe. Also, why are these so much better than results that the reseachers got. They did use another strategy for splitting the data. One cant help but wonder why the researchers did not try this approach as it is rather simple and done almost entirely using defaults.
+If these results are correct, as they seem, it does raise the question how come it predicts so well. Were the trial conditions perhaps to controlled and therefore unnatural? The accuracy seems almost hard to believe. Also, why are these rather better than results that the reseachers got. They also used the random forest, but used another strategy for splitting the data, based on many folds they called the sliding window approach. One cant help but wonder why the researchers did not try this approach as it is rather simple and done almost entirely using defaults.
 
 
 ---
